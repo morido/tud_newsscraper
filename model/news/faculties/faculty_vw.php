@@ -13,9 +13,9 @@ final class lst_schlag extends \webpagereader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
-        $this->posts = array();
+        $this->SetPostingsToEmpty();
 
-        $items = htmlqp($this->webpage, 'table table tr[valign="top"]');
+        $items = htmlqp($this->GetRequestData(), 'table table tr[valign="top"]');
         foreach ($items as $item) {
             $date = $item->children('td:first')->text();
             $date = $this->convertDate($date);
@@ -28,8 +28,7 @@ final class lst_schlag extends \webpagereader {
             $author = "n/a";
             $link = $this->source;
 
-            $output = \base\writePost($date, $author, $text, $link);
-            $this->posts[] = $output;
+            $this->AppendToPostings($date, $author, $text, $link);
         }
     }
 
@@ -47,7 +46,7 @@ final class lst_fricke extends \webpagereader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
-        $this->posts = array();
+        $this->SetPostingsToEmpty();
 
         $author = "n/a";
         $link = $this->source;
@@ -55,7 +54,7 @@ final class lst_fricke extends \webpagereader {
         $options = array(
             'convert_from_encoding' => 'iso-8859-1',
         );
-        $items = htmlqp($this->webpage, '.documentContent', $options)->find('h1.documentFirstHeading');
+        $items = htmlqp($this->GetRequestData(), '.documentContent', $options)->find('h1.documentFirstHeading');
         $items = $items->find('h1.documentFirstHeading'); //we need the second heading
 
         $items = $items->nextAll('h2');
@@ -69,8 +68,7 @@ final class lst_fricke extends \webpagereader {
             }
             $date = $this->convertDate($date);
 
-            $output = \base\writePost($date, $author, $text, $link);
-            $this->posts[] = $output;
+            $this->AppendToPostings($date, $author, $text, $link);
         }
     }
 
@@ -89,9 +87,9 @@ final class lst_ludwig extends \webcmsreader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
-        $this->posts = array();
+        $this->SetPostingsToEmpty();
 
-        $entirepage = htmlqp($this->webpage);
+        $entirepage = htmlqp($this->GetRequestData());
         $metadata = $entirepage->find('.documentBottomLine')->children('.documentByLine');
         $author = $this->getAuthor($metadata->text());
         $date = $this->convertDate($metadata->text());
@@ -105,8 +103,7 @@ final class lst_ludwig extends \webcmsreader {
             }
             $text = $this->tidyText($this->prependText($item->text()));
 
-            $output = \base\writePost($date, $author, $text, $link);
-            $this->posts[] = $output;
+            $this->AppendToPostings($date, $author, $text, $link);
         }
     }
 
@@ -117,8 +114,7 @@ final class lst_ludwig extends \webcmsreader {
      * @return bool
      */
     private function isPseudoInfo($text) {
-        $output = preg_match('/[A-Za-z]+/', $text);
-        if ($output === 1) {
+        if ((preg_match('/[A-Za-z]+/', $text)) === 1) {
             return false;
         }
         else {

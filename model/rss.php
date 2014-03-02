@@ -28,16 +28,6 @@ abstract class rssreader extends base\feedreader {
         $this->source = $source;
     }
 
-    protected final function init() {
-        $this->feedhandler = new SimplePie();
-        $this->feedhandler->set_feed_url($this->$source);
-        $this->feedhandler->enable_cache(false);
-        //$this->feedhandler->set_cache_location(self::CACHEDIR);
-        //$this->feedhandler->set_cache_duration(60); //we do caching mostly internally
-        $this->feedhandler->init();
-        //$feed->handle_content_type();
-    }
-
 }
 
 
