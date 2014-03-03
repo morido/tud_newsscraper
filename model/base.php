@@ -75,8 +75,11 @@ abstract class feedreader implements newssource
     protected final function tidyText($input) {
         $input = trim(preg_replace('/\s+/', ' ', $input)); //remove newlines
 
-        if (strlen($input) > static::MAXSTRINGLENGTH-4) {
-            return substr($input, 0, static::MAXSTRINGLENGTH-4)." ...";
+        $suffixtext = " ...";
+        $suffixtextlength = strlen($suffixtext);
+
+        if (strlen($input) > static::MAXSTRINGLENGTH-$suffixtextlength) {
+            return substr($input, 0, static::MAXSTRINGLENGTH-$suffixtextlength).$suffixtext;
         }
         else {
             return $input;
@@ -103,6 +106,24 @@ abstract class feedreader implements newssource
         $this->posts[] = $output;
     }
 
+    /**
+     * This is basically a replacement for filge_get_contents using cURL-functionality
+     * @param $urlToRetrieve string the URL to be retrieved
+     * @return the body of the retrieved HTTP-request, false on error
+     */
+    protected final function GrabFromRemoteUnconditional($urlToRetrieve) {
+        $curlhandler = $this->setupCURL($urlToRetrieve, false);
+        $body = curl_exec($curlhandler);
+        $http_return_code = curl_getinfo($curlhandler, CURLINFO_HTTP_CODE);
+
+        if ($http_return_code == 200) {
+            return $body;
+        }
+        else {
+            return false;
+        }
+    }
+
     private final function IsDownloadAllowed() {
         return $this->downloadqualifier;
     }
@@ -119,7 +140,7 @@ abstract class feedreader implements newssource
             }
             elseif ($this->IsDownloadAllowed()) {
                 //grabfromremote with conditional get
-                if (($this->GrabFromRemote($this->CacheFileAge(), $this->GetEtagFromCache())) == false) {
+                if (($this->GrabFromRemoteConditional($this->CacheFileAge(), $this->GetEtagFromCache())) == false) {
                     $this->ReadFromCache();
                 }
                 //TODO else => return cache; decrement downloadcounter
@@ -131,7 +152,7 @@ abstract class feedreader implements newssource
         }
         else {
             //unconditional get from remote; fallback to "no output" if that fails
-            if (($this->GrabFromRemote()) == false) {
+            if (($this->GrabFromRemoteConditional()) == false) {
                 $this->SetPostingsToEmpty();
             }
         }
@@ -142,19 +163,14 @@ abstract class feedreader implements newssource
      * Since PHP still has rather poor threading support we do accept simply accept this call to take a while rather
      * than to fork it in the background and return the cache contents for the meantime
      *
-     * @param $cachefallback boolean defines if a fallback to the cache file is allowed if remote resource is unavailable TODO
+     * @param $fileage string The age of the file to compare the Last-Modified header of the remote source against
+     * @param $etag string The etag of the resource as it is currently cached (to be compared against If-None-Match)
      * @return null
      */
-    private final function GrabFromRemote($fileage = self::RESERVEDSPECIAL, $etag = self::RESERVEDSPECIAL) {
-        //setup cURL
-        $curlhandler = curl_init();
-        curl_setopt($curlhandler, CURLOPT_URL, $this->source);
-        curl_setopt($curlhandler, CURLOPT_HEADER, true); //return body+header
-        curl_setopt($curlhandler, CURLOPT_TIMEOUT, 10);
-        curl_setopt($curlhandler, CURLOPT_RETURNTRANSFER, true);
-        //curl_setopt($curlhandler, CURLOPT_USERAGENT, 'TUDnewsscraperbot/0.1 (+http://github.com/morido/tudnewsscraper)');
-        curl_setopt($curlhandler, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)');
+    private final function GrabFromRemoteConditional($fileage = self::RESERVEDSPECIAL, $etag = self::RESERVEDSPECIAL) {
+        $curlhandler = $this->setupCURL($this->source, true);
 
+        //further cURL setup for conditional get
         if ($fileage != self::RESERVEDSPECIAL) {
             curl_setopt($curlhandler, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
             curl_setopt($curlhandler, CURLOPT_TIMEVALUE, $fileage);
@@ -198,6 +214,25 @@ abstract class feedreader implements newssource
     }
 
     /**
+     * Perform the generic part of a cURL setup
+     *
+     * @param $urlToRetrieve string the URL to be retrieved by a subsequent curl_exec()
+     * @param $returnHeader bool whether to include the header in the response as well
+     * @return resource The handler to the current curl instance
+     */
+    private final function setupCURL($urlToRetrieve, $returnHeader) {
+        $curlhandler = curl_init();
+        curl_setopt($curlhandler, CURLOPT_URL, $urlToRetrieve);
+        curl_setopt($curlhandler, CURLOPT_HEADER, $returnHeader); //return body+header
+        curl_setopt($curlhandler, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curlhandler, CURLOPT_RETURNTRANSFER, true);
+        //curl_setopt($curlhandler, CURLOPT_USERAGENT, 'TUDnewsscraperbot/0.1 (+http://github.com/morido/tudnewsscraper)');
+        curl_setopt($curlhandler, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)');
+
+        return $curlhandler;
+    }
+
+    /**
      * Returns the filename to be used for the Cache file
      * @return string
      */
@@ -205,17 +240,24 @@ abstract class feedreader implements newssource
         return realpath(NULL).static::CACHEDIR.static::DOCTYPE."_".$this->feedid.".cache";
     }
 
+    /**
+     * Returns true if the Cache File is present on disk, false otherwise
+     * @return bool
+     */
     private final function CacheFileAvailable() {
         return file_exists($this->GetCacheFilename());
     }
 
+    /**
+     * Return the time the cache file was last modified
+     * @return int
+     */
     private final function CacheFileAge() {
         return filemtime($this->GetCacheFilename());
     }
 
     /**
      * Returns true if the cache-file is too old
-     *
      * @return bool
      */
     private final function IsTimeout() {
@@ -228,13 +270,17 @@ abstract class feedreader implements newssource
     }
 
     /**
-     * Reads in data from the cache file
+     * Reads in the postings from the cache file
      */
     private final function ReadFromCache() {
         $output = unserialize(file_get_contents($this->GetCacheFilename()));
         $this->posts = $output->posts;
     }
 
+    /**
+     * Reads in the etag from the cache file for use with a conditional get (HTTP 304)
+     * @return mixed
+     */
     private final function GetEtagFromCache() {
         $output = unserialize(file_get_contents($this->GetCacheFilename()));
         return $output->etag;
@@ -242,6 +288,7 @@ abstract class feedreader implements newssource
 
     /**
      * Writes data into the Cache file
+     * @param $etag string The etag that was returned by the last request
      */
     private final function WriteToCache($etag) {
         //make sure we are not interfering with other parallel calls
@@ -257,6 +304,10 @@ abstract class feedreader implements newssource
 
 
 final class feedsorter implements newssource {
+    /**
+     * MAXFRESHFEEDS how many feeds may be grabbed from remote during this cycle. All feeds that exceed this limit will
+     * be read in from cache, if possible
+     */
     const MAXFRESHFEEDS =  1;
 
     private $feeds;
@@ -307,7 +358,6 @@ final class feedsorter implements newssource {
             return false;
         }
     }
-
 }
 
 

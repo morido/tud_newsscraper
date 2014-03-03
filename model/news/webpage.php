@@ -82,12 +82,17 @@ class webcmsreader extends webpagereader {
         foreach ($items as $item) {
             $link = $item->attr('href');
             $text = $this->tidyText($this->prependText($item->text()));
-            $subpage = file_get_contents($link);
-            $subpagedata = htmlqp($subpage, '.documentBottomLine')->children('.documentByLine');
-            $author = $this->getAuthor($subpagedata->text());
-            $date = $this->convertDate($subpagedata->text());
+            if (($subpage = $this->GrabFromRemoteUnconditional($link)) == true) {
+                $subpagedata = htmlqp($subpage, '.documentBottomLine')->children('.documentByLine');
+                $author = $this->getAuthor($subpagedata->text());
+                $date = $this->convertDate($subpagedata->text());
 
-            $this->AppendToPostings($date, $author, $text, $link);
+                $this->AppendToPostings($date, $author, $text, $link);
+            }
+            else {
+                //the current subpage is unavailable; skip it
+                continue;
+            }
         }
     }
 
