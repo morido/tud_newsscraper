@@ -37,9 +37,9 @@ abstract class feedreader implements newssource
      * RESERVEDSPECIAL special value which indicates emptiness
      */
     private $posts = array();
-    private $requestdata = "";
-    protected $source = ""; //TODO remove override
-    protected $feedid = "";
+    private $requestdata = self::RESERVEDSPECIAL;
+    protected $source = self::RESERVEDSPECIAL;
+    protected $feedid = self::RESERVEDSPECIAL;
     private $downloadqualifier = true;
     const TIMEOUT =  1800;
     const CACHEDIR = "/../cache/";
@@ -109,12 +109,13 @@ abstract class feedreader implements newssource
     /**
      * This is basically a replacement for filge_get_contents using cURL-functionality
      * @param $urlToRetrieve string the URL to be retrieved
-     * @return the body of the retrieved HTTP-request, false on error
+     * @return mixed the body of the retrieved HTTP-request, false on error
      */
     protected final function GrabFromRemoteUnconditional($urlToRetrieve) {
         $curlhandler = $this->setupCURL($urlToRetrieve, false);
         $body = curl_exec($curlhandler);
         $http_return_code = curl_getinfo($curlhandler, CURLINFO_HTTP_CODE);
+        curl_close($curlhandler);
 
         if ($http_return_code == 200) {
             return $body;
@@ -143,7 +144,6 @@ abstract class feedreader implements newssource
                 if (($this->GrabFromRemoteConditional($this->CacheFileAge(), $this->GetEtagFromCache())) == false) {
                     $this->ReadFromCache();
                 }
-                //TODO else => return cache; decrement downloadcounter
             }
             else {
                 //fallback: read from cache regardless of its age
@@ -168,7 +168,8 @@ abstract class feedreader implements newssource
      * @return null
      */
     private final function GrabFromRemoteConditional($fileage = self::RESERVEDSPECIAL, $etag = self::RESERVEDSPECIAL) {
-        $curlhandler = $this->setupCURL($this->source, true);
+        $curlhandler = $this->setupCURL($this->source, true); //fixme debug false->true
+
 
         //further cURL setup for conditional get
         if ($fileage != self::RESERVEDSPECIAL) {
@@ -182,10 +183,13 @@ abstract class feedreader implements newssource
         //execute the request
         $response = curl_exec($curlhandler);
         $info = curl_getinfo($curlhandler);
+        curl_close($curlhandler);
         $http_return_code = $info['http_code'];
         $headers = substr($response, 0, $info['header_size']);
+        $body = substr($response, $info['header_size'], $info['download_content_length']);
 
-        if ($http_return_code == 304) {
+        //TUD sends out 200 even if its actually a 304, hence the body-check
+        if ($http_return_code == 304 or ($http_return_code == 200 and $body == false)) {
             //content is up to date; stay with the cache
             touch($this->GetCacheFilename());
             $this->ReadFromCache();
@@ -193,7 +197,6 @@ abstract class feedreader implements newssource
         }
         elseif ($http_return_code == 200) {
             //content is not up to date; preform update
-            $body = substr($response, -$info['download_content_length']);
             $this->requestdata = $body;
 
             //get the etag from the header
@@ -223,9 +226,11 @@ abstract class feedreader implements newssource
     private final function setupCURL($urlToRetrieve, $returnHeader) {
         $curlhandler = curl_init();
         curl_setopt($curlhandler, CURLOPT_URL, $urlToRetrieve);
-        curl_setopt($curlhandler, CURLOPT_HEADER, $returnHeader); //return body+header
+        curl_setopt($curlhandler, CURLOPT_HEADER, $returnHeader);
+        curl_setopt($curlhandler, CURLOPT_NOBODY, false);
         curl_setopt($curlhandler, CURLOPT_TIMEOUT, 10);
         curl_setopt($curlhandler, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlhandler, CURLOPT_ENCODING, ""); //send all supported encoding types
         //curl_setopt($curlhandler, CURLOPT_USERAGENT, 'TUDnewsscraperbot/0.1 (+http://github.com/morido/tudnewsscraper)');
         curl_setopt($curlhandler, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)');
 
@@ -359,6 +364,5 @@ final class feedsorter implements newssource {
         }
     }
 }
-
 
 ?>
