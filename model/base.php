@@ -19,6 +19,28 @@ interface newssource
     public function getItems();
 }
 
+
+interface chairlisting
+{
+    /**
+     * Returns available chairs from a faculty
+     *
+     * @return array
+     */
+    public function getAllChairs();
+
+
+    //TODO can this be done with names instead of numbers as well?
+    /**
+     * Returns a specific chair from a faculty
+     *
+     * @param $number
+     * @return object
+     */
+    public function getChair($number);
+}
+
+
 /**
  * Class feedreader
  * @package base
@@ -370,6 +392,23 @@ final class feedsorter implements newssource {
         if ($this->currentDownloads < static::MAXFRESHFEEDS) {
             $this->currentDownloads++;
             return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+abstract class chairreturner implements chairlisting {
+    protected $chairs = array();
+
+    public function getAllChairs() {
+        return $this->chairs;
+    }
+
+    public function getChair($number) {
+        if ($number < count($this->chairs)) {
+            return $this->chairs[$number];
         }
         else {
             return false;

@@ -8,6 +8,8 @@
 
 namespace output;
 
+use base\feedsorter;
+
 interface formatter {
     public function generateHTML();
 }
@@ -18,11 +20,11 @@ class newsfeed_formatter implements formatter {
     private $sorter;
 
     /**
-     * @param $feeds \base\feedreader
+     * @param $feeds array The feeds to be processed
+     * @param $itemstoreturn integer The maximum number of items to return
      */
     public function __construct ($feeds, $itemstoreturn) {
-        $this->sorter = new \base\feedsorter($feeds, $itemstoreturn);
-
+        $this->sorter = new feedsorter($feeds, $itemstoreturn);
     }
 
     //TODO
@@ -71,4 +73,28 @@ function relativeTime($absoluteTimestamp) {
             $output = "vor ".$days." Tagen";
     }
     return $output;
+}
+
+
+/**
+ * Class feedsgatherer
+ *
+ * Combines all available feeds from different sources into one big array
+ *
+ * @package output
+ */
+class feedsgatherer {
+    private $feeds = array();
+
+    public function addFeed($feed) {
+        $this->feeds[] = $feed;
+    }
+
+    public function getAllFeeds() {
+        $output = array();
+        foreach ($this->feeds as $feed) {
+            $output = array_merge($output, $feed->getAllChairs());
+        }
+        return $output;
+    }
 }
