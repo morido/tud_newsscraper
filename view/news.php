@@ -6,8 +6,8 @@
  * Time: 22:10
  */
 
-require_once dirname(__FILE__).'/../model/faculties/faculty_vw.php';
-require_once dirname(__FILE__).'/../model/faculties/faculty_ww.php';
+require_once dirname(__FILE__) . '/../model/news/faculties/faculty_vw.php';
+require_once dirname(__FILE__) . '/../model/news/faculties/faculty_ww.php';
 require_once dirname(__FILE__)."/../view/formatter.php";
 
 $feeds[] = $fakultaet;

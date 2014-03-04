@@ -1,33 +1,15 @@
 <?php
 
+namespace news;
+
 require_once dirname(__FILE__) . '/../../vendor/autoload.php';
 require_once dirname(__FILE__).'/../base.php';
 
 
-abstract class webpagereader extends base\feedreader {
-
-    /**
-     * @var string $publicname is a string to prepend the title of each newsentry with
-     */
-    protected $publicname = "";
-    const DOCTYPE = "WEB";
-
-    protected function prependText($text) {
-        if (empty($this->publicname)) {
-            return trim($text);
-        }
-        else {
-            return "[".$this->publicname."] ".trim($text);
-        }
-    }
+abstract class webpagereader extends \base\feedreader {
+    const DOCTYPE = "WEBNEWS";
 
     protected abstract function convertDate($dateraw);
-
-    public function __construct($publicname, $feedid, $source) {
-        $this->source = $source;
-        $this->publicname = $publicname;
-        $this->feedid = $feedid;
-    }
 
 }
 
@@ -78,7 +60,7 @@ class webcmsreader extends webpagereader {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
         $this->SetPostingsToEmpty();
 
-        $items = htmlqp($this->GetRequestData(), '.portletBody')->find('.newslist-linkedtext')->children('a');
+        $items = htmlqp($this->GetRequestData(), '#newslist_box')->find('.newslist-linkedtext')->children('a');
         foreach ($items as $item) {
             $link = $item->attr('href');
             $text = $this->tidyText($this->prependText($item->text()));

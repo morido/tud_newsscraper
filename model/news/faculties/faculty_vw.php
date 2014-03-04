@@ -6,10 +6,14 @@
  * Time: 22:44
  */
 
-namespace faculty_vw;
+namespace news\faculty_vw;
+use news\unstructured_with_heading;
+use news\webcmsreader;
+use news\webpagereader;
+
 require_once dirname(__FILE__).'/../webpage.php';
 
-final class lst_schlag extends \webpagereader {
+final class lst_schlag extends webpagereader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
@@ -42,7 +46,7 @@ final class lst_schlag extends \webpagereader {
     }
 }
 
-final class lst_fricke extends \webpagereader {
+final class lst_fricke extends webpagereader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
@@ -83,7 +87,7 @@ final class lst_fricke extends \webpagereader {
 }
 
 //currently unused since it can flood the output with postings of the same date (which is somewhat unfair)
-final class lst_ludwig extends \webcmsreader {
+final class lst_ludwig extends webcmsreader {
 
     protected function processItems() {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
@@ -125,18 +129,18 @@ final class lst_ludwig extends \webcmsreader {
 }
 
 
-$fakultaet = new \webcmsreader("Fakultät", "vwfakultaet", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw');
-$lst_becker = new \webcmsreader("Becker", "vwbecker", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/oeko');
-$lst_lippold = new \webcmsreader("Lippold", "vwlippold", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/gsa/');
-$lst_maier = new \webcmsreader("Maier", "vwmaier", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/svt/index_html');
-$lst_schiller = new \webcmsreader("Schiller", "vwschiller", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/tvp/index_html');
+$fakultaet = new webcmsreader("Fakultät", "vwfakultaet", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw');
+$lst_becker = new webcmsreader("Becker", "vwbecker", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/oeko');
+$lst_lippold = new webcmsreader("Lippold", "vwlippold", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/gsa/');
+$lst_maier = new webcmsreader("Maier", "vwmaier", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/svt/index_html');
+$lst_schiller = new webcmsreader("Schiller", "vwschiller", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/tvp/index_html');
 $lst_schlag = new lst_schlag("Schlag", "vwschlag", 'http://vplno2.vkw.tu-dresden.de/psycho/content/home/d_news.html');
-$lst_stephan = new \webcmsreader("Stephan", "vwlststephan", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibb/eb');
-$lst_fengler = new \webcmsreader("Fengler", "vwfengler", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibv/gvb/index_html');
-$lst_stopka = new \webcmsreader("Stopka", "vwstopka", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/kom/');
-$lst_freyer = new \webcmsreader("Freyer", "vwfreyer", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/tou/index_html');
+$lst_stephan = new webcmsreader("Stephan", "vwlststephan", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibb/eb');
+$lst_fengler = new webcmsreader("Fengler", "vwfengler", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibv/gvb/index_html');
+$lst_stopka = new webcmsreader("Stopka", "vwstopka", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/kom/');
+$lst_freyer = new webcmsreader("Freyer", "vwfreyer", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/tou/index_html');
 $lst_fricke = new lst_fricke("Fricke", "vwfricke", "http://www.ifl.tu-dresden.de/?dir=Professur/Aktuelles");
-$lst_ludwig = new \unstructured_with_heading("Ludwig", "vwludwig", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/vlo/studium/aktuelles");
-$lst_wieland = new \unstructured_with_heading("Wieland", "vwwieland", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vwipol/Aktuelles");
-$lst_laemmer = new \unstructured_with_heading("Lämmer", "vwlaemmer", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vos/news/index_html");
-$lst_nachtigall = new \webcmsreader("Nachtigall", "vwnachtigall", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ila/vkstrl");
+$lst_ludwig = new unstructured_with_heading("Ludwig", "vwludwig", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/vlo/studium/aktuelles");
+$lst_wieland = new unstructured_with_heading("Wieland", "vwwieland", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vwipol/Aktuelles");
+$lst_laemmer = new unstructured_with_heading("Lämmer", "vwlaemmer", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vos/news/index_html");
+$lst_nachtigall = new webcmsreader("Nachtigall", "vwnachtigall", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ila/vkstrl");

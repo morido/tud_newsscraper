@@ -17,7 +17,6 @@ interface newssource
      * @return array
      */
     public function getItems();
-
 }
 
 /**
@@ -29,6 +28,7 @@ abstract class feedreader implements newssource
     /**
      * @var array $posts holds the posts currently available in the feed
      * @var string $feedid unique identifier for the current feed
+     * @var string $publicname is a string to prepend the title of each newsentry with
      * @var boolean $downloadqualifier specifies if we are allowed to load data from a remote ressource
      * TIMEOUT a constant defining how long the posts shall be cached (in seconds)
      * CACHEDIR a constant holding the directory of the cached files
@@ -40,6 +40,7 @@ abstract class feedreader implements newssource
     private $requestdata = self::RESERVEDSPECIAL;
     protected $source = self::RESERVEDSPECIAL;
     protected $feedid = self::RESERVEDSPECIAL;
+    protected $publicname = "";
     private $downloadqualifier = true;
     const TIMEOUT =  1800;
     const CACHEDIR = "/../cache/";
@@ -56,8 +57,19 @@ abstract class feedreader implements newssource
         $this->downloadqualifier = $input;
     }
 
-    protected function __construct($feedid) {
+    public function __construct($publicname, $feedid, $source) {
+        $this->source = $source;
+        $this->publicname = $publicname;
         $this->feedid = $feedid;
+    }
+
+    protected function prependText($text) {
+        if (empty($this->publicname)) {
+            return trim($text);
+        }
+        else {
+            return "[".$this->publicname."] ".trim($text);
+        }
     }
 
     protected final function GetRequestData() {
@@ -168,7 +180,7 @@ abstract class feedreader implements newssource
      * @return null
      */
     private final function GrabFromRemoteConditional($fileage = self::RESERVEDSPECIAL, $etag = self::RESERVEDSPECIAL) {
-        $curlhandler = $this->setupCURL($this->source, true); //fixme debug false->true
+        $curlhandler = $this->setupCURL($this->source, true);
 
 
         //further cURL setup for conditional get
@@ -196,7 +208,7 @@ abstract class feedreader implements newssource
             return true;
         }
         elseif ($http_return_code == 200) {
-            //content is not up to date; preform update
+            //content is not up to date; perform update
             $this->requestdata = $body;
 
             //get the etag from the header
