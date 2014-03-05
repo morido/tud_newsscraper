@@ -19,7 +19,7 @@ class webcmsreader extends webpagereader {
         $this->SetPostingsToEmpty();
 
         //process the actual data
-        $items = htmlqp($this->GetRequestData(), '#tudevent_box')->find('.portletContent');
+        $items = htmlqp($this->GetRequestData(), '#tudevent_box', $this->overrideEncoding())->find('.portletContent');
         foreach ($items as $item) {
             if ($item->children('.tudeventlist-eventdate')->count() == 1 and $item->children('.tudeventlist-linkedtext')->count() == 1) {
                 $date = $item->children('.tudeventlist-eventdate')->text();

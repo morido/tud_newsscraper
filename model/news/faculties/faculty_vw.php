@@ -57,10 +57,7 @@ final class lst_fricke extends webpagereader {
         $author = "n/a";
         $link = $this->source;
 
-        $options = array(
-            'convert_from_encoding' => 'iso-8859-1',
-        );
-        $items = htmlqp($this->GetRequestData(), '.documentContent', $options)->find('h1.documentFirstHeading');
+        $items = htmlqp($this->GetRequestData(), '.documentContent', $this->overrideEncoding())->find('h1.documentFirstHeading');
         $items = $items->find('h1.documentFirstHeading'); //we need the second heading
 
         $items = $items->nextAll('h2');

@@ -102,6 +102,18 @@ abstract class feedreader implements newssource
         return $this->requestdata;
     }
 
+    /**
+     * Override erroneous encoding as supplied by the WEBCMS-based pages
+     *
+     * @return array
+     */
+    protected final function overrideEncoding() {
+        $options = array(
+            'convert_from_encoding' => 'iso-8859-1',
+        );
+        return $options;
+    }
+
     protected abstract function processItems();
 
     /**

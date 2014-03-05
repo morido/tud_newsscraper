@@ -61,7 +61,7 @@ class webcmsreader extends webpagereader {
         $this->SetPostingsToEmpty();
 
         //process the actual data
-        $items = htmlqp($this->GetRequestData(), '#newslist_box')->find('.newslist-linkedtext')->children('a');
+        $items = htmlqp($this->GetRequestData(), '#newslist_box', $this->overrideEncoding())->find('.newslist-linkedtext')->children('a');
         foreach ($items as $item) {
             $link = $item->attr('href');
             $text = $this->tidyText($this->prependText($item->text()));
