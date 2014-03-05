@@ -25,13 +25,11 @@ class webcmsreader extends webpagereader {
      */
     protected function convertDate($dateraw) {
         $trimmed_dateraw = trim($dateraw);
+        $unix_timestamp = 0; //defaults to 1970...
+
         if ((preg_match('/^Stand:\s+(.*)\s/', $trimmed_dateraw, $extracted_date)) === 1) {
             $formatted_dateraw = strptime($extracted_date[1], "%d.%m.%Y %H:%M");
             $unix_timestamp = mktime($formatted_dateraw['tm_hour'], $formatted_dateraw['tm_min'], 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
-        }
-        else {
-            //an error occurred
-            $unix_timestamp = 0; //welcome to 1970...
         }
         return $unix_timestamp;
     }
