@@ -6,11 +6,6 @@ use calendar\webcmsreader;
 
 require_once dirname(__FILE__).'/../webpage.php';
 
-//$cal_fakultaet =
-//
-//    http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/
-
-
 class Chairs extends chairreturner {
 
     public function __construct() {

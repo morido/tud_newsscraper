@@ -85,6 +85,16 @@ abstract class feedreader implements newssource
         $this->downloadqualifier = $input;
     }
 
+    /**
+     * Converts an ancient c-style errorno into a more modern exception which is catchable through try/catch
+     * Used for querypath parsing errors
+     *
+     * @param $errno integer currently unused
+     * @param $errstr string currently unused
+     * @param $errfile string currently unused
+     * @param $errline integer currently unused
+     * @throws \ErrorException
+     */
     public function ErrorToExceptionConverter($errno, $errstr, $errfile, $errline) {
         throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
@@ -295,8 +305,7 @@ abstract class feedreader implements newssource
         curl_setopt($curlhandler, CURLOPT_TIMEOUT, 10);
         curl_setopt($curlhandler, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlhandler, CURLOPT_ENCODING, ""); //send all supported encoding types
-        //curl_setopt($curlhandler, CURLOPT_USERAGENT, 'TUDnewsscraperbot/0.1 (+http://github.com/morido/tudnewsscraper)');
-        curl_setopt($curlhandler, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)');
+        curl_setopt($curlhandler, CURLOPT_USERAGENT, 'TUDnewsscraperbot/0.1 (+http://github.com/morido/tudnewsscraper)');
 
         return $curlhandler;
     }
