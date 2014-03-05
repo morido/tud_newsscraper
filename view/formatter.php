@@ -8,30 +8,18 @@
 
 namespace output;
 
+use \news\feedsorter as news_feedsorter;
+use \calendar\feedsorter as calendar_feedsorter;
+
 require_once dirname(__FILE__) . '/../model/news/base.php';
-use news\feedsorter;
+require_once dirname(__FILE__) . '/../model/calendar/base.php';
 
 interface formatter {
     public function generateHTML();
 }
 
-
-class newsfeed_formatter implements formatter {
-
-    private $sorter;
-
-    /**
-     * @param $feeds array The feeds to be processed
-     * @param $itemsToReturn integer The maximum number of items to return
-     */
-    public function __construct ($feeds, $itemsToReturn) {
-        $this->sorter = new feedsorter($feeds, $itemsToReturn);
-    }
-
-    //TODO
-    //posts may have an arbitrary number of columns (title, author, time...)
-    //so we need some kind of overloeading to handle this
-    //Solution: we will have different classes to handle this
+abstract class generic_formatter implements formatter {
+    protected $sorter;
 
     public function generateHTML() {
         $posts = $this->sorter->getItems();
@@ -42,7 +30,7 @@ class newsfeed_formatter implements formatter {
             echo "<a target=\"_blank\" href=\"".$post['link']."\">";
             echo htmlentities($post['text'], ENT_COMPAT | 'ENT_HTML5' | ENT_QUOTES, 'UTF-8');
             echo " ";
-            echo "<span class=\"datum\">".$this->relativeTime($post['timestamp'])."</span>";
+            echo "<span class=\"datum\">".$this->TimeFormatter($post['timestamp'])."</span>";
             echo "</a>";
             echo "</li>";
             echo "\n";
@@ -50,13 +38,32 @@ class newsfeed_formatter implements formatter {
         echo "</ul>";
     }
 
+    protected abstract function TimeFormatter($absoluteTimestamp);
+}
+
+
+class newsfeed_formatter extends generic_formatter {
+
+    /**
+     * @param $feeds array The feeds to be processed
+     * @param $itemsToReturn integer The maximum number of items to return
+     */
+    public function __construct ($feeds, $itemsToReturn) {
+        $this->sorter = new news_feedsorter($feeds, $itemsToReturn);
+    }
+
+    //TODO
+    //posts may have an arbitrary number of columns (title, author, time...)
+    //so we need some kind of overloeading to handle this
+    //Solution: we will have different classes to handle this
+
     /**
      * A function to turn an absolute timelength into a relative human-readable (German) one based on the current time
      *
      * @param integer $absoluteTimestamp Absolute input in seconds
      * @return string Relative time as human-readable string in German
      */
-    private function relativeTime($absoluteTimestamp) {
+    protected function TimeFormatter($absoluteTimestamp) {
         //this requires PHP 5.3
 
         $now = new \DateTime();
@@ -75,6 +82,18 @@ class newsfeed_formatter implements formatter {
         return $output;
     }
 }
+
+class calendarfeed_formatter extends generic_formatter {
+
+    public function __construct($feeds, $itemsToReturn) {
+        $this->sorter = new calendar_feedsorter($feeds, $itemsToReturn, true);
+    }
+
+    protected function TimeFormatter($absoluteTimestamp) {
+        return date("d.m.Y H:i", $absoluteTimestamp);
+    }
+}
+
 
 
 /**
