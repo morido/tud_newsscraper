@@ -90,7 +90,14 @@ class calendarfeed_formatter extends generic_formatter {
     }
 
     protected function TimeFormatter($absoluteTimestamp) {
-        return date("d.m.Y H:i", $absoluteTimestamp);
+        if (date("H:i", $absoluteTimestamp) == "00:00") {
+            //truncate the time for midnight appointments
+            $date = date("d.m.Y", $absoluteTimestamp);
+        }
+        else {
+            $date = date("d.m.Y H:i", $absoluteTimestamp);
+        }
+        return $date;
     }
 }
 
