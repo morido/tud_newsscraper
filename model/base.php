@@ -75,14 +75,18 @@ abstract class feedreader implements newssource
         return $this->posts;
     }
 
-    public function SetDownloadAllowed($input) {
-        $this->downloadqualifier = $input;
-    }
-
     public function __construct($publicname, $feedid, $source) {
         $this->source = $source;
         $this->publicname = $publicname;
         $this->feedid = $feedid;
+    }
+
+    public function SetDownloadAllowed($input) {
+        $this->downloadqualifier = $input;
+    }
+
+    public function ErrorToExceptionConverter($errno, $errstr, $errfile, $errline) {
+        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
     protected function prependText($text) {
@@ -241,12 +245,26 @@ abstract class feedreader implements newssource
                 $etag = trim($etag);
             }
 
-            $this->processItems();
+            $this->processItemsWithSafeFallback();
             $this->WriteToCache($etag);
             return true;
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * This is a wrapper for processItems and causes E_RECOVERABLE_ERROR to be silently discarded
+     * Those errors are usually generated if the htmlqp() lookup fails for some reason
+     */
+    private function processItemsWithSafeFallback() {
+        set_error_handler(array($this, 'ErrorToExceptionConverter'), E_RECOVERABLE_ERROR);
+        try {
+            $this->processItems();
+        }
+        catch (\ErrorException $e) {
+            $this->SetPostingsToEmpty();
         }
     }
 
@@ -342,7 +360,7 @@ abstract class feedreader implements newssource
 }
 
 
-final class feedsorter implements newssource {
+abstract class feedsorter implements newssource {
     /**
      * MAXFRESHFEEDS how many feeds may be grabbed from remote during this cycle. All feeds that exceed this limit will
      * be read in from cache, if possible
@@ -372,15 +390,10 @@ final class feedsorter implements newssource {
             }
         }
 
-        //Sort the resulting array with the newest posting first
-        foreach ($output as $key => $value) {
-            $timestamp[$key] = $value["timestamp"];
-        }
-        array_multisort($timestamp, SORT_DESC, $output);
-
-        //Emit the n newest postings
-        return array_slice($output, 0, $this->itemsToReturn);
+        return $this->sortItems($output, $this->itemsToReturn);
     }
+
+    abstract protected function sortItems($items, $itemsToReturn);
 
     /**
      * This ensures that only MAXFRESHFEEDS are downloaded from a remote site during each cycle. Since the feeds are in

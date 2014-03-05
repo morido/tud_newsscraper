@@ -2,11 +2,13 @@
 
 namespace news;
 
+use base\feedreader;
+
 require_once dirname(__FILE__) . '/../../vendor/autoload.php';
 require_once dirname(__FILE__).'/../base.php';
 
 
-abstract class webpagereader extends \base\feedreader {
+abstract class webpagereader extends feedreader {
     const DOCTYPE = "WEBNEWS";
 
     protected abstract function convertDate($dateraw);
@@ -60,6 +62,7 @@ class webcmsreader extends webpagereader {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
         $this->SetPostingsToEmpty();
 
+        //process the actual data
         $items = htmlqp($this->GetRequestData(), '#newslist_box')->find('.newslist-linkedtext')->children('a');
         foreach ($items as $item) {
             $link = $item->attr('href');

@@ -8,7 +8,8 @@
 
 namespace output;
 
-use base\feedsorter;
+require_once dirname(__FILE__) . '/../model/news/base.php';
+use news\feedsorter;
 
 interface formatter {
     public function generateHTML();
@@ -21,10 +22,10 @@ class newsfeed_formatter implements formatter {
 
     /**
      * @param $feeds array The feeds to be processed
-     * @param $itemstoreturn integer The maximum number of items to return
+     * @param $itemsToReturn integer The maximum number of items to return
      */
-    public function __construct ($feeds, $itemstoreturn) {
-        $this->sorter = new feedsorter($feeds, $itemstoreturn);
+    public function __construct ($feeds, $itemsToReturn) {
+        $this->sorter = new feedsorter($feeds, $itemsToReturn);
     }
 
     //TODO

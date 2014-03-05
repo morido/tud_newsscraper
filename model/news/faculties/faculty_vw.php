@@ -40,7 +40,7 @@ final class lst_schlag extends webpagereader {
     protected function convertDate($dateraw) {
         $formatted_dateraw = strptime($dateraw, "%d.%m.%Y");
         if ($formatted_dateraw == false) {
-            return false;
+            return 0; //welcome to 1970
         }
         $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
         return $unix_timestamp;
@@ -80,7 +80,7 @@ final class lst_fricke extends webpagereader {
     protected function convertDate($dateraw) {
         $formatted_dateraw = strptime($dateraw, "%d-%m-%Y");
         if ($formatted_dateraw == false) {
-            return false;
+            return 0; //welcome to 1970
         }
         $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
         return $unix_timestamp;
