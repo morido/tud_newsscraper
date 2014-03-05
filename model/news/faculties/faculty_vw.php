@@ -43,6 +43,11 @@ final class lst_schlag extends webpagereader {
 
         if ($formatted_dateraw != false) {
             $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
+
+            //ignore postings in the "future". Apparently these guys do typos while hacking in their news -- sorry but we cannot reasonably handle this here.
+            if ($unix_timestamp > time()) {
+                $unix_timestamp = 0; //date back to 1970
+            }
         }
         return $unix_timestamp;
     }
@@ -81,6 +86,11 @@ final class lst_fricke extends webpagereader {
 
         if ($formatted_dateraw != false) {
             $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
+
+            //ignore postings in the "future". This is only a precaution -- this was seen in the wild only with Prof. Schlag
+            if ($unix_timestamp > time()) {
+                $unix_timestamp = 0; //date back to 1970
+            }
         }
         return $unix_timestamp;
     }
