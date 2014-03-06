@@ -11,8 +11,26 @@ require_once dirname(__FILE__).'/../base.php';
 abstract class webpagereader extends feedreader {
     const DOCTYPE = "WEBNEWS";
 
-    protected abstract function convertDate($dateraw);
+    /**
+     * @param $dateraw string The date to be processed
+     * @param $daterawformat string A string to describe the format of the given date
+     * @return mixed A unix timestamp representing the given time. Attention: This can return both 0 (as in date of 1970) as well as boolean false, so make sure to use a === for evaluation
+     */
+    protected function convertDate($dateraw, $daterawformat) {
+        $formatted_dateraw = strptime($dateraw, $daterawformat);
+        if ($formatted_dateraw != false) {
+            $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
 
+            //ignore postings in the "future". Apparently people do typos while hacking in their news -- sorry but we cannot reasonably handle this here.
+            if ($unix_timestamp > time()) {
+                $unix_timestamp = 0 ; //date back to 1970
+            }
+            return $unix_timestamp;
+        }
+        else {
+            return false;
+        }
+    }
 }
 
 class webcmsreader extends webpagereader {
@@ -21,9 +39,10 @@ class webcmsreader extends webpagereader {
      * Converts date + time as given in the scraped HTML into a unix timestamp
      *
      * @param string $dateraw
+     * @param string $daterawformat not used here
      * @return int
      */
-    protected function convertDate($dateraw) {
+    protected function convertDate($dateraw, $daterawformat = NULL) {
         $trimmed_dateraw = trim($dateraw);
         $unix_timestamp = 0; //defaults to 1970...
 

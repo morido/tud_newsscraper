@@ -20,36 +20,23 @@ final class lst_schlag extends webpagereader {
         //ensure that we are not appending to old data (i.e. if this method is called more than once)
         $this->SetPostingsToEmpty();
 
+        $author = "n/a";
+        $link = $this->source;
+
         $items = htmlqp($this->GetRequestData(), 'table table tr[valign="top"]');
         foreach ($items as $item) {
             $date = $item->children('td:first')->text();
-            $date = $this->convertDate($date);
+            $date = $this->convertDate($date, "%d.%m.%Y");
             // stop if no date is given
-            if ($date == false) {
+            if ($date === false) {
                 break;
             }
             $text = $item->children('td:last')->text();
             $text = $this->tidyText($this->prependText($text));
-            $author = "n/a";
-            $link = $this->source;
+
 
             $this->AppendToPostings($date, $author, $text, $link);
         }
-    }
-
-    protected function convertDate($dateraw) {
-        $formatted_dateraw = strptime($dateraw, "%d.%m.%Y");
-        $unix_timestamp = 0; //defaults to 1970
-
-        if ($formatted_dateraw != false) {
-            $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
-
-            //ignore postings in the "future". Apparently these guys do typos while hacking in their news -- sorry but we cannot reasonably handle this here.
-            if ($unix_timestamp > time()) {
-                $unix_timestamp = 1; //date back to 1970 (we cannot use 0 here because this would interfere with $date == false from above... how much we all love plain old C...)
-            }
-        }
-        return $unix_timestamp;
     }
 }
 
@@ -67,32 +54,17 @@ final class lst_fricke extends webpagereader {
 
         $items = $items->nextAll('h2');
         foreach ($items as $item) {
-            $text = $item->text();
-            $text = $this->tidyText($this->prependText($text));
             $date = $item->next('div')->text();
-            if ($date == false) {
+            $date = $this->convertDate($date, "%d-%m-%Y");
+            if ($date === false) {
                 //posts without a date are skipped
                 continue;
             }
-            $date = $this->convertDate($date);
+            $text = $item->text();
+            $text = $this->tidyText($this->prependText($text));
 
             $this->AppendToPostings($date, $author, $text, $link);
         }
-    }
-
-    protected function convertDate($dateraw) {
-        $formatted_dateraw = strptime($dateraw, "%d-%m-%Y");
-        $unix_timestamp = 0; //defaults to 1970
-
-        if ($formatted_dateraw != false) {
-            $unix_timestamp = mktime(0, 0, 0, $formatted_dateraw['tm_mon']+1, $formatted_dateraw['tm_mday'], $formatted_dateraw['tm_year']+1900);
-
-            //ignore postings in the "future". This is only a precaution -- this was seen in the wild only with Prof. Schlag
-            if ($unix_timestamp > time()) {
-                $unix_timestamp = 1; //date back to 1970
-            }
-        }
-        return $unix_timestamp;
     }
 }
 
