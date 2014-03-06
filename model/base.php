@@ -246,7 +246,7 @@ abstract class feedreader implements newssource
         curl_close($curlhandler);
         $http_return_code = $info['http_code'];
         $headers = substr($response, 0, $info['header_size']);
-        $body = substr($response, $info['header_size'], $info['download_content_length']);
+        $body = substr($response, $info['header_size']); //dont rely on $info['download_content_length'] here since Fricke is sending out a wrong Content-Length.
 
         //TUD sends out 200 even if its actually a 304, hence the body-check
         if ($http_return_code == 304 or ($http_return_code == 200 and $body == false)) {

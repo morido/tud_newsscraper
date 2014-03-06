@@ -46,7 +46,7 @@ final class lst_schlag extends webpagereader {
 
             //ignore postings in the "future". Apparently these guys do typos while hacking in their news -- sorry but we cannot reasonably handle this here.
             if ($unix_timestamp > time()) {
-                $unix_timestamp = 0; //date back to 1970
+                $unix_timestamp = 1; //date back to 1970 (we cannot use 0 here because this would interfere with $date == false from above... how much we all love plain old C...)
             }
         }
         return $unix_timestamp;
@@ -70,7 +70,7 @@ final class lst_fricke extends webpagereader {
             $text = $item->text();
             $text = $this->tidyText($this->prependText($text));
             $date = $item->next('div')->text();
-            if (!$date) {
+            if ($date == false) {
                 //posts without a date are skipped
                 continue;
             }
@@ -89,7 +89,7 @@ final class lst_fricke extends webpagereader {
 
             //ignore postings in the "future". This is only a precaution -- this was seen in the wild only with Prof. Schlag
             if ($unix_timestamp > time()) {
-                $unix_timestamp = 0; //date back to 1970
+                $unix_timestamp = 1; //date back to 1970
             }
         }
         return $unix_timestamp;
@@ -147,7 +147,7 @@ class Chairs extends chairreturner {
         $this->chairs[] = new webcmsreader("Maier", "vwmaier", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/svt/index_html');
         $this->chairs[] = new webcmsreader("Schiller", "vwschiller", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/tvp/index_html');
         $this->chairs[] = new lst_schlag("Schlag", "vwschlag", 'http://vplno2.vkw.tu-dresden.de/psycho/content/home/d_news.html');
-        $this->chairs[] = new webcmsreader("Stephan", "vwlststephan", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibb/eb');
+        $this->chairs[] = new webcmsreader("Stephan", "vwstephan", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibb/eb');
         $this->chairs[] = new webcmsreader("Fengler", "vwfengler", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibv/gvb/index_html');
         $this->chairs[] = new webcmsreader("Stopka", "vwstopka", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/kom/');
         $this->chairs[] = new webcmsreader("Freyer", "vwfreyer", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/tou/index_html');
