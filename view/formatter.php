@@ -73,9 +73,9 @@ class newsfeed_formatter extends generic_formatter {
 
         switch($days) {
             case 0:
-                $output = "heute"; break;
+                $output = "<24h"; break;
             case 1:
-                $output = "gestern"; break;
+                $output = "<48h"; break;
             default;
                 $output = "vor ".$days." Tagen";
         }
