@@ -376,7 +376,7 @@ abstract class feedreader implements newssource
         $output = new \stdClass(); //sort of a struct...
         $output->etag = $etag;
         $output->posts = $this->posts;
-        file_put_contents($this->GetCacheFilename(),serialize($output));
+        file_put_contents($this->GetCacheFilename(),serialize($output), LOCK_EX);
     }
 }
 
