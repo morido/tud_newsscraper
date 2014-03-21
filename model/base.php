@@ -161,9 +161,17 @@ abstract class feedreader implements newssource
      * @param $link string An URL to the posting
      * @return array The formatted posting
      */
-    protected final function AppendToPostings($date, $author, $text, $link) {
+    protected function AppendToPostings($date, $author, $text, $link) {
         $output = array ("timestamp" => $date, "author" => $author, "text" => $text, "link" => $link);
-        $this->posts[] = $output;
+        $this->WritePostingRaw($output);
+    }
+
+    /**
+     * Write a single posting to the posts[] array
+     * @param $postingdata
+     */
+    protected final function WritePostingRaw($postingdata) {
+        $this->posts[] = $postingdata;
     }
 
     /**

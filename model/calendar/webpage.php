@@ -10,6 +10,22 @@ require_once dirname(__FILE__).'/../base.php';
 abstract class webpagereader extends feedreader {
  //the override in here is not correct. how come?
     const DOCTYPE = "WEBCALENDAR";
+
+    /**
+     * Writes a posting to the output-array.
+     * Thus ensuring consistent key/value-relations for a single posting in a newssource.
+     *
+     * @param $date array an array consisting of both the beginning and end of the event
+     * @param $author string The author of the posting
+     * @param $text string The heading of the posting
+     * @param $link string An URL to the posting
+     * @return array The formatted posting
+     */
+    protected function AppendToPostings($date, $author, $text, $link) {
+        $output = array ("timestamp" => $date[0], "timestamp_end" => $date[1], "author" => $author, "text" => $text, "link" => $link);
+        $this->WritePostingRaw($output);
+    }
+
 }
 
 class webcmsreader extends webpagereader {
@@ -23,7 +39,8 @@ class webcmsreader extends webpagereader {
         foreach ($items as $item) {
             if ($item->children('.tudeventlist-eventdate')->count() == 1 and $item->children('.tudeventlist-linkedtext')->count() == 1) {
                 $date = $item->children('.tudeventlist-eventdate')->text();
-                $date = $this->convertDate($date);
+                $date = $this->getDates($date);
+
                 $link = $item->children('.tudeventlist-linkedtext')->children('a')->attr('href');
                 $text = $item->children('.tudeventlist-linkedtext')->text();
                 $text = $this->tidyText($this->prependText($text));
@@ -36,11 +53,59 @@ class webcmsreader extends webpagereader {
         }
     }
 
-    protected function convertDate($dateraw) {
-        //strip off everything but the date from the input
+    /**
+     * This returns the beginning and end of an event as a 2-element array
+     * @param $dateraw
+     * @return array
+     */
+    private function getDates($dateraw) {
         $dateraw = trim(preg_replace('/\s+/', ' ', $dateraw)); //remove newlines
+
+        //separate beginning and end of the event
+        $dateelements = explode(" - ", $dateraw, 2);
+        $output = array();
+
+        //set the beginning of the event
+        $output[0] = $this->convertDate($dateelements[0]);
+
+        switch (count($dateelements)) {
+            /** @noinspection PhpMissingBreakStatementInspection */
+            case 2:
+                //we have both beginning and end
+                $enddate = $this->convertDate($dateelements[1], $dateelements[0]);
+                if ($enddate > $output[0]) {
+                    //end needs to be after the beginning
+                    $output[1] = $enddate;
+                    break;
+                }
+                //date malformed, fallthrough to case 1
+            case 1:
+                //we only have a beginning and no end
+                $output[1] = $output[0]; //force end to the same time as beginning
+                break;
+            default:
+                null; //this cannot happen
+        }
+        return $output;
+    }
+
+    //TODO refractor following function
+    /**
+     * This is a generic (begin and end date) function to obtain a valid date from an input string
+     * @param string $dateraw the date to be converted
+     * @param string $begindate can contain the beginning date if the end is given relative to that date
+     * @return int
+     */
+    private function convertDate($dateraw, $begindate = -1) {
         $unix_timestamp = 0; //defaults to 1970
         $formatted_dateraw = false;
+
+        //case0: we only have a time (and need to take the date from the begindate)
+        if ($begindate != -1 and (preg_match('/^[0-9]{2}:[0-9]{2}/',$dateraw,$dateraw_extracted)) === 1) {
+            if ((preg_match('/^[0-9]{2}\.[0-9]{2}\.[0-9]{4}/',$begindate,$dateonly)) === 1) {
+                $dateraw = $dateonly[0].' '.$dateraw; //turn enddate into fully qualified date
+            }
+        }
 
         //case 1: we have a fully qualified date including hour and minute
         if ((preg_match('/^[0-9]{2}\.[0-9]{2}\.[0-9]{4} [0-9]{2}:[0-9]{2}/',$dateraw,$dateraw_extracted)) === 1) {
