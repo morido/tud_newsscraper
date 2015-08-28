@@ -111,7 +111,7 @@ final class lst_ludwig extends webcmsreader {
 }
 
 class Chairs extends chairreturner {
-    
+
     public function __construct() {
         $this->chairs[] = new webcmsreader("Fakultät", "vwfakultaet", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw', true);
         $this->chairs[] = new webcmsreader("Becker", "vwbecker", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/oeko', true);
@@ -128,5 +128,7 @@ class Chairs extends chairreturner {
         $this->chairs[] = new unstructured_with_heading("Wieland", "vwwieland", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vwipol/Aktuelles");
         $this->chairs[] = new unstructured_with_heading("Lämmer", "vwlaemmer", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/vos/news/index_html");
         $this->chairs[] = new webcmsreader("Nachtigall", "vwnachtigall", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ila/vkstrl", true);
+        $this->chairs[] = new webcmsreader("Krimmling", "vwkrimmling", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/vis/vlp", true);
+	$this->chairs[] = new webcmsreader("Schütte", "vwschuette", "http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibv/vsys", true);
     }
 }
