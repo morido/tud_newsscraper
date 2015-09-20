@@ -14,32 +14,6 @@ use news\webpagereader;
 
 require_once dirname(__FILE__).'/../webpage.php';
 
-final class lst_schlag extends webpagereader {
-
-    protected function processItems() {
-        //ensure that we are not appending to old data (i.e. if this method is called more than once)
-        $this->SetPostingsToEmpty();
-
-        $author = "n/a";
-        $link = $this->source;
-
-        $items = htmlqp($this->GetRequestData(), 'table table tr[valign="top"]');
-        foreach ($items as $item) {
-            $date = $item->children('td:first')->text();
-            $date = $this->convertDate($date, "%d.%m.%Y");
-            // stop if no date is given
-            if ($date === false) {
-                break;
-            }
-            $text = $item->children('td:last')->text();
-            $text = $this->tidyText($this->prependText($text));
-
-
-            $this->AppendToPostings($date, $author, $text, $link);
-        }
-    }
-}
-
 final class lst_fricke extends webpagereader {
 
     protected function processItems() {
@@ -118,7 +92,7 @@ class Chairs extends chairreturner {
         $this->chairs[] = new webcmsreader("Lippold", "vwlippold", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/gsa/', true);
         $this->chairs[] = new webcmsreader("Maier", "vwmaier", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/svt/index_html', true);
         $this->chairs[] = new webcmsreader("Schiller", "vwschiller", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/tvp/index_html', true);
-        $this->chairs[] = new lst_schlag("Schlag", "vwschlag", 'http://vplno2.vkw.tu-dresden.de/psycho/content/home/d_news.html');
+        $this->chairs[] = new webcmsreader("Schlag", "vwschlag", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ivs/vpsy');
         $this->chairs[] = new webcmsreader("Stephan", "vwstephan", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibb/eb');
         $this->chairs[] = new webcmsreader("Fengler", "vwfengler", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/ibv/gvb/index_html', true);
         $this->chairs[] = new webcmsreader("Stopka", "vwstopka", 'http://tu-dresden.de/die_tu_dresden/fakultaeten/vkw/iwv/kom/aktuelles');
