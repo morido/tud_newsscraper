@@ -141,8 +141,8 @@ abstract class feedreader implements newssource
         $suffixtext = " ...";
         $suffixtextlength = strlen($suffixtext);
 
-        if (strlen($input) > static::MAXSTRINGLENGTH-$suffixtextlength) {
-            return substr($input, 0, static::MAXSTRINGLENGTH-$suffixtextlength).$suffixtext;
+        if (mb_strlen($input, 'UTF-8') > static::MAXSTRINGLENGTH-$suffixtextlength) {
+            return mb_substr($input, 0, static::MAXSTRINGLENGTH-$suffixtextlength, 'UTF-8').$suffixtext;
         }
         else {
             return $input;
